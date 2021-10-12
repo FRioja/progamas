@@ -1,0 +1,86 @@
+import numpy as np
+import pandas as pd
+import yfinance as yf
+import datetime as dt
+from datetime import datetime as dt_dt
+import math as mth
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def descargar_datos(ticker):
+    f_hoy = dt_dt.today()
+    desde = f_hoy - dt.timedelta(days=(365*2))
+    datos = yf.download(ticker, desde, dt_dt.today(),
+                        adj_close=True)   # descargo datos
+    datos = datos.rename(columns={'Adj Close': 'Adjclose'})
+    return datos
+
+# ,'GGAL','BBAR','SUPV','CEPU','BMA','CRESY','LOMA','PAM','TGS','EDN',]
+ADRs = ['YPF','GGAL','BBAR','SUPV','CEPU','BMA','CRESY','LOMA','PAM','TGS','EDN',]
+a = pd.DataFrame()
+for i in ADRs:
+    a[i] =descargar_datos(i).drop(['Open', 'High', 'Low', 'Close', 'Volume'], axis=1)
+    a[str(i)]=np.log(  a[i] / a[i].shift()  )
+
+
+>>> hist = a.hist(bins=100,figsize=(10,3),xlabelsize=20)
+
+a
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+**Graficar las correlaciones**
+
+# esto me indica el tamanño de la imagen
+fig, ax = plt.subplots(figsize=(10, 8))
+sns.heatmap(a.corr(), ax=ax, annot=True)  # con la graficadora de seaborn
+plt.show()
+
+
+
+# Tabla de varianzas y covarianzas
+
+var=a.cov()
+
+nmp_var=var.to_numpy()
+nmp_var # convierto el dataframe en un numpy 
+
+inversa=np.linalg.inv(nmp_var) # hallo la inversa de la matriz
+
+**para optimizar por media y varinza,  nesecito una risk free**
+
+## hayamos R estimado - Risk Free
+
+riskF=float (input('ingrese una risk free'))
+lista=[]
+for num in a:
+    w=a[num].mean()-riskF
+    lista.append(w)
+lista
+
+
+mult=np.dot(lista,inversa) # multiplicaicon de matrices 
+mult
+
+num=0
+for i in range(len(mult)):
+    num=mult[i]+num
+
+num
+
+weights=[]
+for x in range(len(mult)):
+    div=mult[x]/num
+    weights.append(div)
+
+
+
+df = pd.DataFrame()
+df['tiker'] = pd.DataFrame(ADRs)
+df['weights'] = pd.DataFrame(weights)
+
+df
+
+df.weights.cumsum()
+
